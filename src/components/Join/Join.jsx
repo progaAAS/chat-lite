@@ -1,42 +1,45 @@
-import axios from 'axios';
 import React from 'react';
+import { Field, reduxForm } from 'redux-form';
+import {onEnter} from "../../redux/join-page";
+import {connect} from "react-redux";
+import {Redirect} from "react-router-dom";
 
-const Join = (props) => {
-  debugger
-
-    const[roomId, setRoomId] = React.useState("");
-    const[userName, setUserName] = React.useState("");
-    const[isLoading, setLoading] = React.useState(false);
-
-    const onEnter = async () => {
-      console.log("onEnter");
-        if(!roomId || !userName){
-            return alert("Неверные данные")
-        }
-        const obj = {roomId, userName}
-        setLoading(true);
-        await axios.post('/rooms', obj)
-        props.onLogin(obj);
-   }
-
+const JoinForm = (props) => {
+  
     return <div className="join-block">
-      <input
-        type="text"
-        placeholder="Room ID"
-        value={roomId}
-        onChange={(e) => setRoomId(e.target.value)}
-      />
-      <input
-        type="text"
-        placeholder="Ваше имя"
-        value={userName}
-        onChange={(e) => setUserName(e.target.value)}
-      />
-      <button disabled={isLoading} onClick={onEnter} className="btn btn-success">
-        {isLoading ? 'Вход' : 'Войти'}
-      </button>
+      <form onSubmit={props.handleSubmit}>
+        <Field placeholder="Room ID" name={"roomId"} component={"input"}/>  
+        <Field placeholder="Ваше имя" name={"userName"} component={"input"}/>
+        <button className="btn btn-success">Вход</button>
+      </form>
     </div>
 
 }
 
-export default Join;
+const JoinReduxForm = reduxForm({form: 'join'})(JoinForm)
+
+const Join = (props) => {
+
+  const onSubmit = (formData) => {
+    debugger
+    props.onEnter(formData.userName, formData.roomId);
+  }
+  console.log(props.joined);
+  console.log(props.userName);
+  console.log(props.roomId);
+  
+  if (props.joined){
+    return <Redirect to={"/chat"} />
+  }
+
+  return<div>
+    <h1>JoinForm</h1>
+    <JoinReduxForm onSubmit={onSubmit}/>
+  </div>
+}
+
+const mapStateToProps = (state) => ({
+  joined: state.joinPage.joined
+})
+
+export default connect(mapStateToProps, {onEnter} )(Join);
